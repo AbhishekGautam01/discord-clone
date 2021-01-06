@@ -1,11 +1,14 @@
 import React from 'react';
+import Sidebar from './components/sidebar/Sidebar';
 import './App.css';
 
 function App() {
   return (
     //BEM naming convention
     <div className="app">
-      <h1>Discord Clone</h1>
+      {/* Sidebar  */}
+      <Sidebar />
+      {/* Chat */}
     </div>
   );
 }
