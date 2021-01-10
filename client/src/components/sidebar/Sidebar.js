@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../features/userSlice';
+import db, { auth } from '../../firebase';
 import SidebarChannel from '../sidebar-channel/SidebarChannel';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import AddIcon from '@material-ui/icons/Add';
@@ -10,7 +13,30 @@ import HeadsetIcon from '@material-ui/icons/Headset';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { Avatar } from '@material-ui/core';
 import './Sidebar.css';
-function sidebar() {
+
+function Sidebar() {
+  const user = useSelector(selectUser);
+  const [channels, setChannels] = useState([]);
+  useEffect(() => {
+    db.collection('channels').onSnapshot((snapshot) =>
+      setChannels(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          channel: doc.data(),
+        }))
+      )
+    );
+  }, []);
+  const handleAddChannel = () => {
+    const channelName = prompt('Enter Channel Name');
+
+    if (channelName) {
+      db.collection('channels').add({
+        channelName,
+      });
+    }
+  };
+  console.log('user', user);
   return (
     <div className="sidebar">
       <div className="sidebar__top">
@@ -24,13 +50,15 @@ function sidebar() {
             <ExpandMoreIcon />
             <h4>Channels</h4>
           </div>
-          <AddIcon className="sidebar__addChannel"></AddIcon>
+          <AddIcon
+            onClick={handleAddChannel}
+            className="sidebar__addChannel"
+          ></AddIcon>
         </div>
         <div className="sidebar__channels_list">
-          <SidebarChannel />
-          <SidebarChannel />
-          <SidebarChannel />
-          <SidebarChannel />
+          {channels.map((channel) => (
+            <SidebarChannel key={channel.id} id={channel.id} {...channel} />
+          ))}
         </div>
       </div>
 
@@ -50,10 +78,10 @@ function sidebar() {
         </div>
       </div>
       <div className="sidebar__profile">
-        <Avatar src="https://lh3.googleusercontent.com/ogw/ADGmqu-7y1REP-0nyULN-QGYawAisgwFWL09-4EHAi642A=s32-c-mo" />
+        <Avatar onClick={() => auth.signOut()} src={user.photo} />
         <div className="sidebar__profile__info">
-          <h3>UserName</h3>
-          <p>#thisIsMyId</p>
+          <h3>{user.displayName}</h3>
+          <p>#{user.uid.substring(0, 5)}</p>
         </div>
         <div className="sidebar__profile__icons">
           <MicIcon />
@@ -65,4 +93,4 @@ function sidebar() {
   );
 }
 
-export default sidebar;
+export default Sidebar;
